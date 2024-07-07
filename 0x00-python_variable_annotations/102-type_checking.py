@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """
-Use mypy to validate the following piece
-of code and apply any necessary changes.
+Zoom array function
 """
-from typing import Tuple, List
+
+from typing import Any, List, Tuple
 
 
 def zoom_array(lst: Tuple, factor: int = 2) -> List:
     """
-    Returns a tuple.
+    Zoom in on the array by repeating each element by a given factor
     """
     zoomed_in: List = [
         item for item in lst
         for i in range(factor)
     ]
-    return tuple(zoomed_in)
+    return zoomed_in
 
 
 array = [12, 72, 91]
