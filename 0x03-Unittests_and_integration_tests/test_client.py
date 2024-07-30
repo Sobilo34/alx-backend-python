@@ -98,58 +98,39 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(result, expectation)
 
 
-@parameterized_class(
-    ['org_payload', 'repos_payload', 'expected_repos', 'apache2_repos'],
-    TEST_PAYLOAD
-)
+@parameterized_class(['org_payload', 'repos_payload', 'expected_repos',
+                      'apache2_repos'], TEST_PAYLOAD)
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """
-    Integration test for GithubOrgClient.public_repos method.
+    Integration test
     """
 
     @classmethod
     def setUpClass(cls):
-        # Patch requests.get
-        cls.get_patcher = patch('client.requests.get')
+        cls.get_patcher = patch('client.get_json')
         cls.mocked_get = cls.get_patcher.start()
-        # Set side effects for the mock
-        cls.mocked_get.side_effect = [
-            cls._mock_response(cls.org_payload),
-            cls._mock_response(cls.repos_payload)
-        ]
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.get_patcher.stop()
-
-    @staticmethod
-    def _mock_response(json_data, status=200):
-        """
-        Helper method to create a mock response
-        object with the specified JSON data.
-        """
-        mock_resp = unittest.mock.Mock()
-        mock_resp.json.return_value = json_data
-        mock_resp.status_code = status
-        return mock_resp
-
-    def test_public_repos(self):
+    def test_public_repos(self) -> None:
         """
         Test the public_repos method of the GithubOrgClient class.
+
+        Verifies that the public_repos method returns the expected list
+        of repositories associated with a GitHub organization.
+
+        Returns:
+            None
         """
-        # Create an instance of GithubOrgClient
         google_client = GithubOrgClient('Google')
 
-        # Check if the org method returns the correct org_payload
-        self.assertEqual(google_client.org, self.org_payload)
+        url = "https://api.github.com/orgs/Google"
+        self.mocked_get.side_effect = [self.org_payload, self.repos_payload]
 
-        # Check if the public_repos method returns the correct repos_payload
+        self.assertEqual(google_client.org, self.org_payload)
+        self.assertEqual(google_client.repos_payload, self.repos_payload)
         self.assertEqual(google_client.public_repos(), self.expected_repos)
         self.assertEqual(google_client.public_repos("NONEXISTENT"), [])
-
-        # Check if the correct URLs were called
         self.mocked_get.assert_has_calls([
-            call("https://api.github.com/orgs/Google"),
+            call(url),
             call(self.org_payload["repos_url"])
         ])
 
