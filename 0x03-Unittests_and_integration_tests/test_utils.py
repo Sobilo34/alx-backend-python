@@ -66,18 +66,14 @@ class TestGetJson(unittest.TestCase):
             test_payload (dict): The expected JSON payload.
             mock_get (Mock): The mock object for requests.get.
         """
-        # Set up the mock to return a response with the desired JSON payload
         mock_response = Mock()
         mock_response.json.return_value = test_payload
         mock_get.return_value = mock_response
 
-        # Call the function
         result = get_json(test_url)
 
-        # Check that requests.get was called exactly once with test_url
         mock_get.assert_called_once_with(test_url)
 
-        # Check that the result is the expected payload
         self.assertEqual(result, test_payload)
 
 
