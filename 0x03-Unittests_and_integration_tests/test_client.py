@@ -51,10 +51,12 @@ class TestGithubOrgClient(unittest.TestCase):
             new_callable=PropertyMock,
         ) as mock_org:
             public_repos = "https://api.github.com/users/google/repos"
+            # Mock the org property to return a known payload
             mock_org.return_value = {
                 'repos_url': public_repos,
             }
 
+            # Call the _public_repos_url property and assert the result
             self.assertEqual(
                 GithubOrgClient("google")._public_repos_url,
                 public_repos,
@@ -65,17 +67,22 @@ class TestGithubOrgClient(unittest.TestCase):
         """
         Test public_repos method.
         """
+        # Define the payload to be returned by get_json
         payload = [{"name": "Google"}, {"name": "TT"}]
         mocked_get_json.return_value = payload
 
+        # Patch the _public_repos_url property to return a known value
         with patch('client.GithubOrgClient._public_repos_url',
                    new_callable=PropertyMock) as mocked_public_repos_url:
             mocked_public_repos_url.return_value = "world"
 
+            # Call the method under test
             response = GithubOrgClient('test').public_repos()
 
+            # Check if the response matches the expected output
             self.assertEqual(response, ["Google", "TT"])
 
+            # Check if patched property & method were called once each
             mocked_public_repos_url.assert_called_once()
             mocked_get_json.assert_called_once()
 
@@ -91,7 +98,10 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(result, expectation)
 
 
-@parameterized_class(['org_payload', 'repos_payload', 'expected_repos', 'apache2_repos'], TEST_PAYLOAD)
+@parameterized_class(
+    ['org_payload', 'repos_payload', 'expected_repos', 'apache2_repos'],
+    TEST_PAYLOAD
+)
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """
     Integration test for GithubOrgClient.public_repos method.
@@ -115,7 +125,8 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
     @staticmethod
     def _mock_response(json_data, status=200):
         """
-        Helper method to create a mock response object with the specified JSON data.
+        Helper method to create a mock response
+        object with the specified JSON data.
         """
         mock_resp = unittest.mock.Mock()
         mock_resp.json.return_value = json_data
@@ -141,7 +152,6 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
             call("https://api.github.com/orgs/Google"),
             call(self.org_payload["repos_url"])
         ])
-
 
     def test_public_repos_with_license(self) -> None:
         """
